@@ -59,7 +59,15 @@ export const smallBtn: CSSProperties = {
 export function Screen({ children }: { children: ReactNode }) {
   return (
     <div style={root}>
-      <div style={wrap}>{children}</div>
+      <div style={wrap}>
+        {children}
+        <p data-testid="voice-credit" style={{ margin: "22px 0 0", textAlign: "center", fontSize: 13, fontWeight: 700, color: th.text.tertiary }}>
+          Voces:{" "}
+          <a href="https://elevenlabs.io" target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
+            elevenlabs.io
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

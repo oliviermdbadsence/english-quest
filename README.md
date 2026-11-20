@@ -2,7 +2,7 @@
 
 Juego de inglés para niños, estático, sin servidor y sin base de datos. Ocho mundos, diez retos aleatorios por partida y un perfil por jugador guardado en el navegador.
 
-Los mundos son Numbers Island, Hello Town, Library Castle, Zoo Jungle, Olympic Stadium, Body Safari, Fashion Planet y Chocolate Kingdom. Cada ronda mezcla preguntas de opción múltiple, deletreo con fichas y ordenar palabras. Con 7 aciertos o más se abre el siguiente mundo (7 = 1 estrella, 8–9 = 2, 10 = 3). Cada acierto suma 10 monedas y, a partir de tres seguidos, 15. El botón de escuchar usa síntesis de voz en inglés británico (`en-GB`) cuando el dispositivo tiene esa voz.
+Los mundos son Numbers Island, Hello Town, Library Castle, Zoo Jungle, Olympic Stadium, Body Safari, Fashion Planet y Chocolate Kingdom. Cada ronda mezcla preguntas de opción múltiple, deletreo con fichas y ordenar palabras. Con 7 aciertos o más se abre el siguiente mundo (7 = 1 estrella, 8–9 = 2, 10 = 3). Cada acierto suma 10 monedas y, a partir de tres seguidos, 15. El botón de escuchar reproduce audio británico grabado con ElevenLabs (voz Alice). Si no hay clip para esa frase, el navegador usa síntesis de voz en inglés británico (`en-GB`).
 
 ## Arranque local
 
@@ -50,5 +50,5 @@ La clave es `english-quest`, esquema **v1**. Un guardado antiguo `english-quest-
 
 - El progreso vive en `localStorage` de ese navegador y ese dispositivo. No se sincroniza entre aparatos, y se pierde si se borran los datos del sitio o se usa una ventana privada que no conserva almacenamiento.
 - La pantalla de resultado se vuelve a mostrar si se elige al jugador otra vez; cerrar la pestaña no borra las estrellas ni las monedas ya sumadas.
-- La voz depende del sistema. Se pide `en-GB` y una voz británica si existe. Sin síntesis de voz, el botón no suena y el resto del juego sigue igual.
+- Las frases del juego tienen un mp3 británico en `public/audio/`. Si una frase no está en el manifiesto, se usa la síntesis de voz del dispositivo en `en-GB`. Si esa tampoco existe, el botón no suena y el resto del juego sigue igual.
 - No hay cuentas, ranking en línea ni panel de administración fuera del propio dispositivo.

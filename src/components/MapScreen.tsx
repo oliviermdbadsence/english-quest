@@ -189,7 +189,7 @@ export function MapScreen({
         <div style={{ ...card, marginTop: 24 }}>
           <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>👨‍👩‍👦 Zona de padres</div>
           <p style={{ fontSize: 15, color: th.text.secondary, marginBottom: 12, lineHeight: 1.45 }}>
-            Contenido sacado de la hoja «English: contents to review». Las preguntas salen en orden aleatorio, así cada partida es distinta. El botón 🔊 lee en inglés británico si el navegador lo permite. El progreso de {profile.name} se guarda solo en este navegador (esquema v1), sin cuenta ni servidor.
+            Contenido sacado de la hoja «English: contents to review». Las preguntas salen en orden aleatorio, así cada partida es distinta. El botón 🔊 usa voces británicas grabadas. Si falta un audio, el navegador lee en inglés si puede. El progreso de {profile.name} se guarda solo en este navegador (esquema v1), sin cuenta ni servidor.
           </p>
 
           <form
