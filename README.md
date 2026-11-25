@@ -2,7 +2,9 @@
 
 Juego de inglés para niños, estático, sin servidor y sin base de datos. Ocho mundos, diez retos aleatorios por partida y un perfil por jugador guardado en el navegador.
 
-Los mundos son Numbers Island, Hello Town, Library Castle, Zoo Jungle, Olympic Stadium, Body Safari, Fashion Planet y Chocolate Kingdom. Cada ronda mezcla preguntas de opción múltiple, deletreo con fichas y ordenar palabras. Con 7 aciertos o más se abre el siguiente mundo (7 = 1 estrella, 8–9 = 2, 10 = 3). Cada acierto suma 10 monedas y, a partir de tres seguidos, 15. El botón de escuchar reproduce audio británico grabado con ElevenLabs (voz Alice). Si no hay clip para esa frase, el navegador usa síntesis de voz en inglés británico (`en-GB`).
+Després de triar el jugador, es pot jugar a English Quest o a Missió Problemes (problemes de mates en català, centrats a entendre l'enunciat). El progrés de cada joc es guarda a part dins del mateix perfil.
+
+Los mundos de inglés son Numbers Island, Hello Town, Library Castle, Zoo Jungle, Olympic Stadium, Body Safari, Fashion Planet y Chocolate Kingdom. Cada ronda mezcla preguntas de opción múltiple, deletreo con fichas y ordenar palabras. Con 7 aciertos o más se abre el siguiente mundo (7 = 1 estrella, 8–9 = 2, 10 = 3). Cada acierto suma 10 monedas y, a partir de tres seguidos, 15. El botón de escuchar reproduce audio británico grabado con ElevenLabs (voz Alice). Si no hay clip para esa frase, el navegador usa síntesis de voz en inglés británico (`en-GB`).
 
 ## Arranque local
 

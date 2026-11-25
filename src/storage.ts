@@ -1,14 +1,14 @@
 import { PER_ROUND } from "./game";
-import type { Item, PendingResult, Profile, Q, SavedRound, Store, Tile } from "./types";
+import { MATHS_WORLDS, worldOfProblem } from "./maths/problems";
+import type { Item, MathsProgress, MathsResult, MathsRound, PendingResult, Profile, Q, SavedRound, Store, Tile } from "./types";
 import { WORLDS } from "./worlds";
 
 /**
  * On-device save schema.
  *
- * v1 (key `english-quest`):
- * `{ version: 1, profiles: Profile[] }`
- * Profile fields: id, name, avatar, stars[8], coins, bestScores[8],
- * sound, round | null, pendingResult | null.
+ * v1: English-only profile (stars, coins, bestScores, sound, round, pendingResult).
+ * v2: the same English fields, plus `maths` (its own stars, coins, best scores and round).
+ * Loading v1 adds an empty maths section and does not change English progress.
  *
  * Legacy key `english-quest-v1` held one shared `{ stars, coins }` progress
  * blob from the canvas prototype. It is imported once as a profile named
@@ -16,7 +16,7 @@ import { WORLDS } from "./worlds";
  *
  * A stored `version` greater than SCHEMA_VERSION is left untouched.
  */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const STORAGE_KEY = "english-quest";
 export const LEGACY_KEY = "english-quest-v1";
 const BACKUP_KEY = "english-quest-unreadable";
@@ -32,6 +32,16 @@ export function newId(): string {
   return "p-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
 }
 
+export function emptyMaths(): MathsProgress {
+  return {
+    stars: Array.from({ length: MATHS_WORLDS.length }, () => 0),
+    coins: 0,
+    bestScores: Array.from({ length: MATHS_WORLDS.length }, () => 0),
+    round: null,
+    pendingResult: null,
+  };
+}
+
 export function makeProfile(name: string, avatar: string, id = newId()): Profile {
   return {
     id,
@@ -43,7 +53,23 @@ export function makeProfile(name: string, avatar: string, id = newId()): Profile
     sound: true,
     round: null,
     pendingResult: null,
+    maths: emptyMaths(),
   };
+}
+
+export function resetEnglish(profile: Profile): Profile {
+  return {
+    ...profile,
+    stars: profile.stars.map(() => 0),
+    coins: 0,
+    bestScores: profile.bestScores.map(() => 0),
+    round: null,
+    pendingResult: null,
+  };
+}
+
+export function resetMaths(profile: Profile): Profile {
+  return { ...profile, maths: emptyMaths() };
 }
 
 export function isFutureVersion(raw: unknown): boolean {
@@ -56,7 +82,7 @@ export function migrate(raw: unknown): Store | null {
   if (!raw || typeof raw !== "object") return null;
   if (isFutureVersion(raw)) return null;
   const o = raw as Record<string, unknown>;
-  if (o.version === SCHEMA_VERSION) return migrateV1(o);
+  if (o.version === 1 || o.version === SCHEMA_VERSION) return migrateProfiles(o);
   if (o.version === undefined && Array.isArray(o.stars) && typeof o.coins === "number") return legacyProgressToStore(o);
   return null;
 }
@@ -142,7 +168,7 @@ function backupUnreadable(raw: string): void {
   }
 }
 
-function migrateV1(o: Record<string, unknown>): Store | null {
+function migrateProfiles(o: Record<string, unknown>): Store | null {
   if (!Array.isArray(o.profiles)) return null;
   const profiles: Profile[] = [];
   for (const entry of o.profiles) {
@@ -157,7 +183,7 @@ function migrateV1(o: Record<string, unknown>): Store | null {
 function legacyProgressToStore(o: Record<string, unknown>): Store | null {
   if (!Array.isArray(o.stars) || typeof o.coins !== "number" || !Number.isFinite(o.coins)) return null;
   const profile = makeProfile("Jugador", "🚀", "legacy-player");
-  profile.stars = repairNumberRow(o.stars, 3);
+  profile.stars = repairNumberRow(o.stars, WORLDS.length, 3);
   profile.coins = clampInt(o.coins, 0, 1_000_000);
   return { version: SCHEMA_VERSION, profiles: [profile] };
 }
@@ -175,19 +201,66 @@ function repairProfile(raw: unknown): Profile | null {
     id: o.id,
     name,
     avatar: o.avatar,
-    stars: repairNumberRow(o.stars, 3),
+    stars: repairNumberRow(o.stars, WORLDS.length, 3),
     coins,
-    bestScores: repairNumberRow(o.bestScores, PER_ROUND),
+    bestScores: repairNumberRow(o.bestScores, WORLDS.length, PER_ROUND),
     sound: o.sound === false ? false : true,
     round: repairRound(o.round),
     pendingResult: repairPending(o.pendingResult),
+    maths: repairMaths(o.maths),
   };
 }
 
-function repairNumberRow(raw: unknown, max: number): number[] {
-  const out = Array.from({ length: WORLDS.length }, () => 0);
+function repairMaths(raw: unknown): MathsProgress {
+  const blank = emptyMaths();
+  if (!raw || typeof raw !== "object") return blank;
+  const o = raw as Record<string, unknown>;
+  const coins = typeof o.coins === "number" && Number.isFinite(o.coins) ? clampInt(o.coins, 0, 1_000_000) : 0;
+  return {
+    stars: repairNumberRow(o.stars, MATHS_WORLDS.length, 3),
+    coins,
+    bestScores: repairNumberRow(o.bestScores, MATHS_WORLDS.length, 6),
+    round: repairMathsRound(o.round),
+    pendingResult: repairMathsResult(o.pendingResult),
+  };
+}
+
+function repairMathsRound(raw: unknown): MathsRound | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const worldIndex = intIn(o.worldIndex, 0, MATHS_WORLDS.length - 1);
+  const step = intIn(o.step, 0, 3);
+  const score = intIn(o.score, 0, 6);
+  const streak = intIn(o.streak, 0, 6);
+  const earned = intIn(o.earned, 0, 6 * 15);
+  if (worldIndex === null || step === null || score === null || streak === null || earned === null) return null;
+  if (typeof o.clean !== "boolean" || !Array.isArray(o.order)) return null;
+  const ids = MATHS_WORLDS[worldIndex].problems.map((item) => item.id);
+  const order = o.order.filter((id): id is string => typeof id === "string");
+  if (order.length !== ids.length || new Set(order).size !== order.length || order.some((id) => worldOfProblem(id) !== worldIndex)) return null;
+  const index = intIn(o.index, 0, order.length - 1);
+  if (index === null) return null;
+  return { worldIndex, order, index, step, clean: o.clean, score, streak, earned };
+}
+
+function repairMathsResult(raw: unknown): MathsResult | null {
+  if (raw === null || raw === undefined) return null;
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const worldIndex = intIn(o.worldIndex, 0, MATHS_WORLDS.length - 1);
+  const total = intIn(o.total, 1, 6);
+  const score = total === null ? null : intIn(o.score, 0, total);
+  const stars = intIn(o.stars, 0, 3);
+  const earned = intIn(o.earned, 0, 6 * 15);
+  if (worldIndex === null || total === null || score === null || stars === null || earned === null) return null;
+  if (typeof o.unlocked !== "boolean") return null;
+  return { worldIndex, total, score, stars, earned, unlocked: o.unlocked };
+}
+
+function repairNumberRow(raw: unknown, length: number, max: number): number[] {
+  const out = Array.from({ length }, () => 0);
   if (!Array.isArray(raw)) return out;
-  for (let i = 0; i < WORLDS.length && i < raw.length; i++) {
+  for (let i = 0; i < length && i < raw.length; i++) {
     const value = raw[i];
     if (typeof value === "number" && Number.isFinite(value)) out[i] = clampInt(value, 0, max);
   }

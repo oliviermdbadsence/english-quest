@@ -10,6 +10,7 @@ export function MapScreen({
   profile,
   onStart,
   onContinue,
+  onGames,
   onSwitch,
   onToggleSound,
   onSaveProfile,
@@ -19,6 +20,7 @@ export function MapScreen({
   profile: Profile;
   onStart: (worldIndex: number) => void;
   onContinue: () => void;
+  onGames: () => void;
   onSwitch: () => void;
   onToggleSound: () => void;
   onSaveProfile: (name: string, avatar: string) => void;
@@ -56,6 +58,9 @@ export function MapScreen({
             <Chip testId="player-chip">
               {profile.avatar} {profile.name}
             </Chip>
+            <button type="button" data-testid="back-games" style={smallBtn} onClick={onGames}>
+              Tria joc
+            </button>
             <button type="button" data-testid="switch-player" style={smallBtn} onClick={onSwitch}>
               Cambiar jugador
             </button>

@@ -50,7 +50,11 @@ export function WhoScreen({
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginBottom: 16 }}>
             {profiles.map((profile) => {
               const stars = totalStars(profile.stars);
-              const resume = profile.round ? "⏸️ Partida a medias" : profile.pendingResult ? "🏆 Partida terminada" : "Listo para jugar";
+              const notes = [
+                profile.round ? "Inglés a medias" : profile.pendingResult ? "Inglés terminado" : "",
+                profile.maths.round ? "Problemes a mitges" : profile.maths.pendingResult ? "Problemes acabats" : "",
+              ].filter(Boolean);
+              const resume = notes.length ? "⏸️ " + notes.join(" · ") : "Listo para jugar";
               return (
                 <button
                   key={profile.id}

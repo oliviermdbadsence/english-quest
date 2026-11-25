@@ -28,6 +28,34 @@ export type PendingResult = {
   earned: number;
 };
 
+export type MathsRound = {
+  worldIndex: number;
+  order: string[];
+  index: number;
+  step: number;
+  clean: boolean;
+  score: number;
+  streak: number;
+  earned: number;
+};
+
+export type MathsResult = {
+  worldIndex: number;
+  stars: number;
+  score: number;
+  total: number;
+  unlocked: boolean;
+  earned: number;
+};
+
+export type MathsProgress = {
+  stars: number[];
+  coins: number;
+  bestScores: number[];
+  round: MathsRound | null;
+  pendingResult: MathsResult | null;
+};
+
 export type Profile = {
   id: string;
   name: string;
@@ -38,11 +66,12 @@ export type Profile = {
   sound: boolean;
   round: SavedRound | null;
   pendingResult: PendingResult | null;
+  maths: MathsProgress;
 };
 
 export type Store = {
-  version: 1;
+  version: 2;
   profiles: Profile[];
 };
 
-export type Screen = "who" | "map" | "play" | "result";
+export type Screen = "who" | "pick" | "map" | "play" | "result" | "maths-map" | "maths-play" | "maths-result";

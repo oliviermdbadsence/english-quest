@@ -81,7 +81,9 @@ describe("storage schema v1", () => {
     assert.equal(loaded.store.profiles[0].id, "legacy-player");
     assert.deepEqual(loaded.store.profiles[0].stars, [3, 1, 0, 0, 0, 0, 0, 0]);
     assert.equal(loaded.store.profiles[0].coins, 55);
-    assert.equal(JSON.parse(memory.get(STORAGE_KEY) ?? "{}").version, 1);
+    assert.equal(JSON.parse(memory.get(STORAGE_KEY) ?? "{}").version, SCHEMA_VERSION);
+    assert.equal(loaded.store.profiles[0].maths.coins, 0);
+    assert.equal(loaded.store.profiles[0].maths.stars.length, 8);
     memory.set(LEGACY_KEY, JSON.stringify({ stars: [0, 0, 0, 0, 0, 0, 0, 0], coins: 1 }));
     const second = loadStore();
     if (second.status !== "ready") return;
@@ -136,6 +138,34 @@ describe("storage schema v1", () => {
       if (loaded.status !== "ready") return;
       assert.deepEqual(loaded.store.profiles[0].round?.round, profile.round.round, "chunk " + start);
     }
+  });
+
+  it("keeps english progress when migrating a v1 profile", () => {
+    const migrated = migrate({
+      version: 1,
+      profiles: [
+        {
+          id: "ana",
+          name: "Ana",
+          avatar: "🦄",
+          stars: [3, 1, 0, 0, 0, 0, 0, 0],
+          coins: 40,
+          bestScores: [10, 8, 0, 0, 0, 0, 0, 0],
+          sound: false,
+          round: null,
+          pendingResult: null,
+        },
+      ],
+    });
+    assert.equal(migrated?.version, 2);
+    assert.equal(migrated?.profiles[0].coins, 40);
+    assert.equal(migrated?.profiles[0].stars[0], 3);
+    assert.equal(migrated?.profiles[0].stars[1], 1);
+    assert.equal(migrated?.profiles[0].sound, false);
+    assert.equal(migrated?.profiles[0].round, null);
+    assert.deepEqual(migrated?.profiles[0].maths.stars, [0, 0, 0, 0, 0, 0, 0, 0]);
+    assert.equal(migrated?.profiles[0].maths.coins, 0);
+    assert.equal(migrated?.profiles[0].maths.round, null);
   });
 
   it("does not overwrite a newer schema", () => {

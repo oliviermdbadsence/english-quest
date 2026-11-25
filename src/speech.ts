@@ -97,6 +97,33 @@ function speakWithSynth(text: string): void {
   }
 }
 
+/** Read a Catalan problem. Uses a Catalan voice, then a Spanish one. */
+export function speakCatalan(text: string): void {
+  stopSpeech();
+  if (!text.trim()) return;
+  try {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    const voices = synth.getVoices();
+    const catalan = voices.find((item) => item.lang.toLowerCase().replace("_", "-").startsWith("ca"));
+    const spanish = voices.find((item) => item.lang.toLowerCase().replace("_", "-").startsWith("es"));
+    if (catalan) {
+      utterance.voice = catalan;
+      utterance.lang = catalan.lang;
+    } else if (spanish) {
+      utterance.voice = spanish;
+      utterance.lang = "es-ES";
+    } else {
+      utterance.lang = "ca-ES";
+    }
+    synth.speak(utterance);
+  } catch {
+    /* audio not available */
+  }
+}
+
 /** Play the British clip for this line. Browser en-GB speech is only the backup. */
 export function speak(text: string): void {
   stopSpeech();
